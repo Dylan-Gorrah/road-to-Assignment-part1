@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Fundamentals — Before the Login App</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:          #0c0a0e;
+    --surface:     #14101a;
+    --surface2:    #1c1525;
+    --border:      #2a1f35;
+    --accent:      #ff3cac;
+    --accent2:     #ff79c6;
+    --accent-glow: #ff3cac33;
+    --accent-dim:  #ff3cac12;
+    --green:       #4ade80;
+    --green-dim:   #4ade8018;
+    --yellow:      #fbbf24;
+    --yellow-dim:  #fbbf2418;
+    --blue:        #60a5fa;
+    --blue-dim:    #60a5fa14;
+    --text:        #f0e8f8;
+    --muted:       #7a6a8a;
+    --code-bg:     #080610;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300; font-size: 16.5px; line-height: 1.85;
+  }
+
+  /* ── PROGRESS ── */
+  .progress-bar {
+    position: fixed; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transform-origin: left; z-index: 999; transition: transform .1s;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 90px 28px 72px; text-align: center;
+    position: relative; overflow: hidden;
+    min-height: 340px; display: flex;
+    align-items: center; justify-content: center;
+  }
+  header::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+  header::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 44px 44px; opacity: .4;
+    animation: gridPulse 4s ease-in-out infinite;
+  }
+  @keyframes gridPulse { 0%,100%{opacity:.25} 50%{opacity:.5} }
+  .header-glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 70% at 50% 50%, #ff3cac22 0%, transparent 70%);
+    animation: glowBreath 3s ease-in-out infinite;
+  }
+  @keyframes glowBreath { 0%,100%{opacity:.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.05)} }
+  .scanline {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, #ff3cac55, transparent);
+    animation: scan 3.5s linear infinite; pointer-events: none;
+  }
+  @keyframes scan { from{top:-2px} to{top:100%} }
+  .header-inner { position: relative; z-index: 1; }
+  .header-inner > * {
+    opacity: 0; transform: translateY(18px);
+    animation: fadeUp .6s ease forwards;
+  }
+  .header-inner > *:nth-child(1){animation-delay:.1s}
+  .header-inner > *:nth-child(2){animation-delay:.25s}
+  .header-inner > *:nth-child(3){animation-delay:.4s}
+  .header-inner > *:nth-child(4){animation-delay:.55s}
+  @keyframes fadeUp { to{opacity:1;transform:translateY(0)} }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 100px; padding: 5px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--muted);
+    letter-spacing: .1em; text-transform: uppercase; margin-bottom: 28px;
+  }
+  .pill span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  h1 {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: clamp(36px,5.5vw,62px); line-height: 1.05;
+    letter-spacing: -.03em; color: #fff;
+    max-width: 680px; margin: 0 auto 20px;
+  }
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, #ff79c6, #ff3cac);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .sub { color: var(--muted); font-size: 16px; max-width: 460px; margin: 0 auto; }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 820px; margin: 0 auto; padding: 0 28px; }
+
+  /* ── SECTION ── */
+  .section { padding: 80px 0; position: relative; }
+  .section + .section::before {
+    content: ''; position: absolute; top: 0; left: 28px; right: 28px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+  .section-eye {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-eye::before {
+    content: ''; width: 24px; height: 1px; background: var(--accent); opacity: .5;
+  }
+  h2 {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: clamp(24px,3.2vw,36px); color: #fff;
+    line-height: 1.15; margin-bottom: 20px; letter-spacing: -.02em;
+  }
+  h3 {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 19px; color: #fff; margin: 44px 0 14px;
+  }
+  p { color: #b0a0c0; margin-bottom: 18px; max-width: 700px; }
+  p:last-child { margin-bottom: 0; }
+  strong { color: #e8d8f8; font-weight: 500; }
+  code {
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    color: var(--accent2); background: var(--surface2);
+    padding: 1px 6px; border-radius: 4px;
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    margin: 28px 0; border-radius: 10px;
+    border: 1px solid var(--border); overflow: hidden;
+    box-shadow: 0 4px 28px #00000030;
+  }
+  .code-top {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface2); padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-filename {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+    color: var(--muted); display: flex; align-items: center; gap: 8px;
+  }
+  .code-filename::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); box-shadow: 0 0 6px var(--accent);
+  }
+  .copy-btn {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); background: none; border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 4px; cursor: pointer; transition: all .2s;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--green); border-color: var(--green); }
+  pre {
+    background: var(--code-bg); padding: 24px 22px;
+    overflow-x: auto; font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px; line-height: 1.8; color: #d0c0e0; tab-size: 4;
+  }
+  .kw  { color: #ff79c6; }
+  .ty  { color: #8be9fd; }
+  .fn  { color: #50fa7b; }
+  .str { color: #f1fa8c; }
+  .nm  { color: #bd93f9; }
+  .cm  { color: #4a3a5a; font-style: italic; }
+
+  /* ── CONSOLE ── */
+  .console-block {
+    margin: 28px 0; border-radius: 10px;
+    border: 1px solid #3a1f35; overflow: hidden;
+  }
+  .console-top {
+    background: #140a18; padding: 9px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: .15em; text-transform: uppercase;
+    color: #7a3a6a; display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid #3a1f35;
+  }
+  .console-top::before { content: '▶'; color: var(--accent); font-size: 9px; }
+  .console-body {
+    background: #060410; padding: 18px 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; color: var(--accent2); line-height: 1.7;
+    white-space: pre; overflow-x: auto;
+  }
+
+  /* ── CALLOUT ── */
+  .callout {
+    display: flex; gap: 16px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px; margin: 24px 0; align-items: flex-start;
+  }
+  .callout.green  { border-left-color: var(--green); }
+  .callout.blue   { border-left-color: var(--blue); }
+  .callout.yellow { border-left-color: var(--yellow); }
+  .callout-icon {
+    flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--accent-dim); border: 1px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; margin-top: 2px;
+  }
+  .callout.green  .callout-icon { background: var(--green-dim); border-color: var(--green); }
+  .callout.blue   .callout-icon { background: var(--blue-dim);  border-color: var(--blue);  }
+  .callout.yellow .callout-icon { background: var(--yellow-dim);border-color: var(--yellow);}
+  .callout p { margin: 0; font-size: 14.5px; color: #a090b8; max-width: none; }
+
+  /* ── BREAKDOWN TABLE ── */
+  .breakdown {
+    border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; margin: 28px 0;
+  }
+  .breakdown-row {
+    display: grid; grid-template-columns: 220px 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-code {
+    padding: 13px 18px; background: var(--surface2);
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--accent2); border-right: 1px solid var(--border);
+    display: flex; align-items: center; word-break: break-all;
+  }
+  .breakdown-desc {
+    padding: 13px 18px; background: var(--surface);
+    font-size: 14px; color: #9080a8; display: flex; align-items: center;
+  }
+
+  /* ── CHECKLIST ── */
+  .checklist { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 16px 0; }
+  .checklist li { display: flex; gap: 10px; font-size: 15px; color: #b0a0c0; }
+  .checklist li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
+
+  /* ── ACTIVITY ── */
+  .activity-wrap {
+    background: linear-gradient(135deg, #130d1f, #0f0a18);
+    border: 1px solid #3a2045; border-radius: 14px;
+    padding: 38px 40px; margin: 52px 0 0; position: relative; overflow: hidden;
+  }
+  .activity-wrap::before {
+    content: ''; position: absolute; top: -50px; right: -50px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, #ff3cac10, transparent 70%);
+    pointer-events: none;
+  }
+  .activity-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: #fff;
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+    padding: 4px 12px; border-radius: 4px; margin-bottom: 18px;
+  }
+  .activity-wrap h3 {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 21px; color: #fff; margin: 0 0 14px;
+  }
+  .activity-wrap > p { color: #806890; font-size: 15px; }
+  .scenario {
+    background: #08040f; border: 1px solid var(--border);
+    border-radius: 8px; padding: 20px 24px; margin: 22px 0;
+  }
+  .scenario p { color: #a890b8; font-size: 15px; margin-bottom: 10px; }
+  .scenario p:last-child { margin-bottom: 0; }
+  .scenario strong { color: #e0d0f0; }
+
+  /* ── REVEAL BUTTON ── */
+  .reveal-wrap { text-align: center; margin-top: 24px; }
+  .reveal-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: transparent; border: 1px solid var(--accent);
+    color: var(--accent); font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 14px; letter-spacing: .04em;
+    padding: 12px 26px; border-radius: 8px; cursor: pointer; transition: all .25s;
+  }
+  .reveal-btn:hover { background: var(--accent-dim); box-shadow: 0 0 24px var(--accent-glow); }
+  .reveal-btn svg { width: 15px; height: 15px; }
+
+  /* ── MODAL ── */
+  .modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(8,4,14,.9); backdrop-filter: blur(16px);
+    z-index: 100; align-items: center; justify-content: center; padding: 24px;
+    animation: mFade .2s ease;
+  }
+  .modal.open { display: flex; }
+  @keyframes mFade { from{opacity:0} to{opacity:1} }
+  .modal-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; max-width: 680px; width: 100%;
+    max-height: 88vh; overflow-y: auto;
+    box-shadow: 0 24px 80px #00000080;
+    animation: mUp .25s ease;
+  }
+  @keyframes mUp { from{transform:translateY(22px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 26px; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+  }
+  .modal-title {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 17px; color: #fff;
+  }
+  .modal-close {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 22px; line-height: 1;
+    padding: 2px 6px; transition: color .2s; border-radius: 4px;
+  }
+  .modal-close:hover { color: var(--accent); }
+  .modal-body { padding: 28px 26px; }
+
+  /* pw screen */
+  .pw-screen {
+    display: flex; flex-direction: column;
+    align-items: center; padding: 40px 28px; gap: 16px;
+  }
+  .pw-lock {
+    width: 58px; height: 58px; border-radius: 50%;
+    background: var(--accent-dim); border: 1px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; margin-bottom: 6px;
+  }
+  .pw-title {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 20px; color: #fff; text-align: center;
+  }
+  .pw-hint { color: var(--muted); font-size: 14px; text-align: center; }
+  .pw-hint .pink { color: var(--accent2); }
+  .pw-input {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 18px;
+    font-family: 'JetBrains Mono', monospace; font-size: 15px;
+    color: #fff; outline: none; text-align: center;
+    letter-spacing: .3em; width: 180px; transition: border-color .2s;
+  }
+  .pw-input:focus { border-color: var(--accent); }
+  .pw-input.shake { animation: shake .35s ease; }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-8px)}
+    40%{transform:translateX(8px)}
+    60%{transform:translateX(-6px)}
+    80%{transform:translateX(6px)}
+  }
+  .pw-error { color: var(--accent); font-size: 13px; font-family: 'JetBrains Mono', monospace; min-height: 18px; }
+  .pw-submit {
+    background: var(--accent); border: none; border-radius: 8px;
+    padding: 11px 30px; color: #fff;
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: 14px; cursor: pointer; transition: opacity .2s;
+  }
+  .pw-submit:hover { opacity: .85; }
+
+  /* answer screen */
+  .answer-screen { display: none; }
+  .answer-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: .15em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 14px;
+  }
+
+  /* ── SCROLL FADE ── */
+  .fade-in { opacity: 0; transform: translateY(22px); transition: opacity .55s ease, transform .55s ease; }
+  .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; padding: 60px 28px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--border); letter-spacing: .12em; text-transform: uppercase;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── PREV BUTTON ── */
+  .prev-btn-wrap { position: fixed; bottom: 28px; left: 28px; z-index: 100; }
+  .prev-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); text-decoration: none;
+    border-radius: 8px; padding: 10px 18px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    letter-spacing: .05em; text-transform: uppercase; transition: all .2s;
+  }
+  .prev-btn svg { width: 14px; height: 14px; }
+  .prev-btn:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ── HEADER ── -->
+<header>
+  <div class="header-glow"></div>
+  <div class="scanline"></div>
+  <div class="header-inner">
+    <div class="pill"><span></span> Java Basics · Before the Login App</div>
+    <h1>The <em>Fundamentals</em><br/>You Need First</h1>
+    <p class="sub">Everything you need to understand before building a login system — explained simply, from scratch.</p>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ════════════════════════════════════
+     SECTION 1 — VARIABLES & DATA TYPES
+════════════════════════════════════ -->
+<div class="section fade-in">
+  <div class="section-eye">Section 01</div>
+  <h2>Variables &amp; Data Types</h2>
+
+  <p>A variable is just a <strong>named box</strong> that holds a piece of information. You give the box a name, and you can put something in it and read it later.</p>
+
+  <p>But before you create a box in Java, you have to tell it <em>what kind of thing</em> it's going to hold. That's the data type. Think of it like labelling the box — "this box is for words", "this box is for numbers", "this box is for yes/no answers".</p>
+
+  <h3>The four types you'll use most</h3>
+
+  <div class="breakdown">
+    <div class="breakdown-row">
+      <div class="breakdown-code">String</div>
+      <div class="breakdown-desc">Text — any word, sentence, or mix of characters. Always goes in double quotes.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">int</div>
+      <div class="breakdown-desc">A whole number — no decimals. 1, 42, -10, 0.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">boolean</div>
+      <div class="breakdown-desc">Only two possible values: true or false. Yes or no. On or off.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">char</div>
+      <div class="breakdown-desc">A single character — one letter, digit, or symbol. Goes in single quotes: 'A', '3', '_'.</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-top">
+      <div class="code-filename">Variables.java</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre><span class="kw">public class</span> <span class="ty">Variables</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="ty">String</span>[] args) {
+
+        <span class="cm">// String — holds text. Always in double quotes.</span>
+        <span class="ty">String</span> firstName = <span class="str">"Kyle"</span>;
+        <span class="ty">String</span> lastName  = <span class="str">"Smith"</span>;
+
+        <span class="cm">// int — whole numbers only. No quotes.</span>
+        <span class="kw">int</span> age  = <span class="nm">21</span>;
+        <span class="kw">int</span> score = <span class="nm">95</span>;
+
+        <span class="cm">// boolean — only true or false. No quotes.</span>
+        <span class="kw">boolean</span> isLoggedIn = <span class="kw">false</span>;
+        <span class="kw">boolean</span> isAdmin    = <span class="kw">true</span>;
+
+        <span class="cm">// char — one single character. Always in single quotes.</span>
+        <span class="kw">char</span> initial  = <span class="str">'K'</span>;
+        <span class="kw">char</span> underscore = <span class="str">'_'</span>;
+
+        <span class="cm">// Printing them out to the console</span>
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Name: "</span> + firstName + <span class="str">" "</span> + lastName);
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Age: "</span> + age);
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Logged in: "</span> + isLoggedIn);
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Initial: "</span> + initial);
+    }
+}</pre>
+  </div>
+
+  <div class="console-block">
+    <div class="console-top">Output</div>
+    <div class="console-body">Name: Kyle Smith
+Age: 21
+Logged in: false
+Initial: K</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon">!</div>
+    <p>Notice the pattern: <strong>type → name → = → value → ;</strong><br/>
+    <code>String firstName = "Kyle";</code><br/>
+    Every variable declaration in Java follows that same structure. The semicolon at the end is not optional — Java will refuse to run without it.</p>
+  </div>
+
+  <div class="callout yellow">
+    <div class="callout-icon">!</div>
+    <p>Why does this matter for the login app? Because every piece of data we handle — the username, password, first name, last name, cell number — is a <code>String</code>. And every check we run returns a <code>boolean</code>. These are the two types you'll use most.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     SECTION 2 — IF/ELSE
+════════════════════════════════════ -->
+<div class="section fade-in">
+  <div class="section-eye">Section 02</div>
+  <h2>If / Else — Making Decisions</h2>
+
+  <p>An if/else statement lets your code make a decision. "If this condition is true — do this. Otherwise (else) — do that." It's the most used thing in programming.</p>
+
+  <p>Read it like a sentence: <em>"If the password is long enough — accept it. Otherwise — reject it."</em></p>
+
+  <div class="code-block">
+    <div class="code-top">
+      <div class="code-filename">IfElse.java</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre><span class="kw">public class</span> <span class="ty">IfElse</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="ty">String</span>[] args) {
+
+        <span class="kw">int</span> age = <span class="nm">17</span>;
+
+        <span class="cm">// The condition goes inside the ( ) brackets.
+        // If it's true, the first block runs. If not, the else block runs.</span>
+        <span class="kw">if</span> (age >= <span class="nm">18</span>) {
+            <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"You are old enough to vote."</span>);
+        } <span class="kw">else</span> {
+            <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"You are too young to vote."</span>);
+        }
+
+        <span class="cm">// You can also chain them with else if
+        // for more than two outcomes:</span>
+        <span class="kw">int</span> score = <span class="nm">74</span>;
+
+        <span class="kw">if</span> (score >= <span class="nm">75</span>) {
+            <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Distinction!"</span>);
+        } <span class="kw">else if</span> (score >= <span class="nm">50</span>) {
+            <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Pass."</span>);
+        } <span class="kw">else</span> {
+            <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Did not pass."</span>);
+        }
+    }
+}</pre>
+  </div>
+
+  <div class="console-block">
+    <div class="console-top">Output</div>
+    <div class="console-body">You are too young to vote.
+Pass.</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon">!</div>
+    <p>The curly braces <code>{ }</code> group everything that belongs to the if or else. Everything inside the braces only runs when that condition is true. Don't leave them out — it leads to subtle bugs that are a nightmare to find.</p>
+  </div>
+
+  <!-- ACTIVITY 1 -->
+  <div class="activity-wrap">
+    <div class="activity-badge">✦ Activity 1</div>
+    <h3>What will this print?</h3>
+    <p>Read the code below carefully. Before you run it — can you figure out what gets printed? Think through the conditions one by one.</p>
+
+    <div class="scenario">
+      <p>Given this code:</p>
+      <pre style="background:transparent;padding:0;font-size:13px;color:#c8b8d8;line-height:1.7;font-family:'JetBrains Mono',monospace;"><span class="kw">int</span> temperature = <span class="nm">22</span>;
+
+<span class="kw">if</span> (temperature > <span class="nm">30</span>) {
+    <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"It is very hot."</span>);
+} <span class="kw">else if</span> (temperature > <span class="nm">20</span>) {
+    <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Nice weather."</span>);
+} <span class="kw">else</span> {
+    <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"A bit cold."</span>);
+}</pre>
+      <p>What does it print? <strong>And why?</strong> Work it out, then reveal the answer.</p>
+    </div>
+
+    <div class="reveal-wrap">
+      <button class="reveal-btn" onclick="openModal('modal1')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Reveal Answer
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     SECTION 3 — BOOLEAN LOGIC
+════════════════════════════════════ -->
+<div class="section fade-in">
+  <div class="section-eye">Section 03</div>
+  <h2>Boolean Logic — &amp;&amp;, ||, and !</h2>
+
+  <p>Sometimes one condition isn't enough. What if you need <em>both</em> things to be true? Or <em>at least one</em>? That's where boolean operators come in.</p>
+
+  <div class="breakdown">
+    <div class="breakdown-row">
+      <div class="breakdown-code">&amp;&amp; (AND)</div>
+      <div class="breakdown-desc">Both sides must be true for the whole thing to be true.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">|| (OR)</div>
+      <div class="breakdown-desc">At least one side must be true. If either is true, the whole thing is true.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">! (NOT)</div>
+      <div class="breakdown-desc">Flips a boolean. true becomes false. false becomes true.</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-top">
+      <div class="code-filename">BooleanLogic.java</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre><span class="kw">public class</span> <span class="ty">BooleanLogic</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="ty">String</span>[] args) {
+
+        <span class="kw">boolean</span> hasUnderscore = <span class="kw">true</span>;
+        <span class="kw">boolean</span> shortEnough   = <span class="kw">false</span>; <span class="cm">// username is too long</span>
+
+        <span class="cm">// AND — both must be true</span>
+        <span class="kw">boolean</span> validUsername = hasUnderscore &amp;&amp; shortEnough;
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Valid username: "</span> + validUsername); <span class="cm">// false</span>
+
+        <span class="cm">// OR — at least one must be true</span>
+        <span class="kw">boolean</span> eitherPasses = hasUnderscore || shortEnough;
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Either passes: "</span> + eitherPasses); <span class="cm">// true</span>
+
+        <span class="cm">// NOT — flip it</span>
+        <span class="kw">boolean</span> isInvalid = !validUsername;
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Is invalid: "</span> + isInvalid); <span class="cm">// true</span>
+
+        <span class="cm">// Real example from the login app:
+        // The username check returns true only if BOTH conditions pass.</span>
+        <span class="kw">if</span> (hasUnderscore &amp;&amp; shortEnough) {
+            <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Username successfully captured."</span>);
+        } <span class="kw">else</span> {
+            <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Username is not correctly formatted."</span>);
+        }
+    }
+}</pre>
+  </div>
+
+  <div class="console-block">
+    <div class="console-top">Output</div>
+    <div class="console-body">Valid username: false
+Either passes: true
+Is invalid: true
+Username is not correctly formatted.</div>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-icon">!</div>
+    <p>In the login app, every single validation method is basically just boolean logic. <code>checkUserName()</code> does <code>return hasUnderscore &amp;&amp; shortEnough</code>. That's it. Once you get comfortable with <code>&amp;&amp;</code>, that whole method just clicks.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     SECTION 4 — METHODS
+════════════════════════════════════ -->
+<div class="section fade-in">
+  <div class="section-eye">Section 04</div>
+  <h2>Methods — Reusable Blocks of Code</h2>
+
+  <p>A method is a named block of code that does one specific job. You write it once, and then you can <em>call it</em> as many times as you want. Think of it like a vending machine button — you press B3, it always dispenses the same thing.</p>
+
+  <p>Methods can optionally take in some information (<strong>parameters</strong>), and they can optionally send something back when they're done (<strong>return value</strong>).</p>
+
+  <h3>The anatomy of a method</h3>
+
+  <div class="breakdown">
+    <div class="breakdown-row">
+      <div class="breakdown-code">public</div>
+      <div class="breakdown-desc">Who can use this method. public = anyone. (More on this later.)</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">boolean / String / void</div>
+      <div class="breakdown-desc">What type of thing it sends back. void = nothing, it just runs.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">methodName()</div>
+      <div class="breakdown-desc">The name you'll use to call it. Brackets hold the parameters.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">return ...</div>
+      <div class="breakdown-desc">Sends a value back to whoever called the method, then stops running.</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-top">
+      <div class="code-filename">Methods.java</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre><span class="kw">public class</span> <span class="ty">Methods</span> {
+
+    <span class="cm">// A method that takes a name and returns a greeting.
+    // Return type: String  |  Parameter: String name</span>
+    <span class="kw">public static</span> <span class="ty">String</span> <span class="fn">greet</span>(<span class="ty">String</span> name) {
+        <span class="kw">return</span> <span class="str">"Hello, "</span> + name + <span class="str">"!"</span>;
+    }
+
+    <span class="cm">// A method that checks if a number is positive.
+    // Return type: boolean  |  Parameter: int number</span>
+    <span class="kw">public static boolean</span> <span class="fn">isPositive</span>(<span class="kw">int</span> number) {
+        <span class="kw">return</span> number > <span class="nm">0</span>;
+    }
+
+    <span class="cm">// A method that just prints something. No return value.
+    // Return type: void  |  No parameters</span>
+    <span class="kw">public static void</span> <span class="fn">printDivider</span>() {
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"──────────────────────"</span>);
+    }
+
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="ty">String</span>[] args) {
+
+        <span class="cm">// Calling the methods and using their return values</span>
+        <span class="ty">String</span> message = <span class="fn">greet</span>(<span class="str">"Amahle"</span>);
+        <span class="ty">System</span>.out.<span class="fn">println</span>(message);        <span class="cm">// Hello, Amahle!</span>
+
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="fn">greet</span>(<span class="str">"Kyle"</span>));  <span class="cm">// Hello, Kyle!</span>
+
+        <span class="kw">boolean</span> result = <span class="fn">isPositive</span>(<span class="nm">42</span>);
+        <span class="ty">System</span>.out.<span class="fn">println</span>(result);          <span class="cm">// true</span>
+
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="fn">isPositive</span>(-<span class="nm">5</span>)); <span class="cm">// false</span>
+
+        <span class="fn">printDivider</span>();                      <span class="cm">// ──────────────────────</span>
+    }
+}</pre>
+  </div>
+
+  <div class="console-block">
+    <div class="console-top">Output</div>
+    <div class="console-body">Hello, Amahle!
+Hello, Kyle!
+true
+false
+──────────────────────</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon">!</div>
+    <p>See how we call <code>greet("Amahle")</code> and <code>greet("Kyle")</code>? Same method, different input, different output. That's the whole point of methods — write the logic once, use it everywhere. In the login app, we write <code>checkUserName()</code> once and the app calls it every time a user registers.</p>
+  </div>
+
+  <!-- ACTIVITY 2 -->
+  <div class="activity-wrap">
+    <div class="activity-badge">✦ Activity 2</div>
+    <h3>Fix the broken method</h3>
+    <p>The method below has a problem — it compiles but always returns the wrong answer. Can you spot what's wrong?</p>
+
+    <div class="scenario">
+      <p>This method is supposed to return <code>true</code> if someone is old enough to vote (18 or older), and <code>false</code> if not. But it's broken.</p>
+      <pre style="background:transparent;padding:0;font-size:13px;color:#c8b8d8;line-height:1.7;font-family:'JetBrains Mono',monospace;"><span class="kw">public static boolean</span> <span class="fn">canVote</span>(<span class="kw">int</span> age) {
+    <span class="kw">if</span> (age >= <span class="nm">18</span>) {
+        <span class="kw">return false</span>;
+    } <span class="kw">else</span> {
+        <span class="kw">return true</span>;
+    }
+}</pre>
+      <p>What's the bug? And what should the corrected version look like?</p>
+    </div>
+
+    <div class="reveal-wrap">
+      <button class="reveal-btn" onclick="openModal('modal2')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Reveal Answer
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     SECTION 5 — CLASSES & OBJECTS
+════════════════════════════════════ -->
+<div class="section fade-in">
+  <div class="section-eye">Section 05</div>
+  <h2>Classes &amp; Objects</h2>
+
+  <p>A <strong>class</strong> is a blueprint. An <strong>object</strong> is the actual thing built from that blueprint. Think of a class as the architectural plans for a house. The object is the actual house you build from those plans. You can build many houses from the same plans — each one is its own separate object with its own data.</p>
+
+  <p>An object holds two things: <strong>data</strong> (variables inside it) and <strong>behaviour</strong> (methods it can perform). This is the core idea of Object-Oriented Programming — OOP.</p>
+
+  <div class="code-block">
+    <div class="code-top">
+      <div class="code-filename">Dog.java + Main.java</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre><span class="cm">// ── The Blueprint (class) ──────────────────────────────────</span>
+<span class="kw">public class</span> <span class="ty">Dog</span> {
+
+    <span class="cm">// Data — every Dog object will have these</span>
+    <span class="ty">String</span> name;
+    <span class="ty">String</span> breed;
+    <span class="kw">int</span> age;
+
+    <span class="cm">// Behaviour — things a Dog object can do</span>
+    <span class="kw">public void</span> <span class="fn">bark</span>() {
+        <span class="ty">System</span>.out.<span class="fn">println</span>(name + <span class="str">" says: Woof!"</span>);
+    }
+
+    <span class="kw">public void</span> <span class="fn">introduce</span>() {
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Hi, I'm "</span> + name + <span class="str">", a "</span> + breed + <span class="str">"."</span>);
+    }
+}
+
+<span class="cm">// ── Using It (creating objects from the blueprint) ─────────</span>
+<span class="kw">public class</span> <span class="ty">Main</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="ty">String</span>[] args) {
+
+        <span class="cm">// new Dog() builds an actual object from the Dog class.
+        // dog1 and dog2 are completely separate — changing one
+        // doesn't affect the other.</span>
+        <span class="ty">Dog</span> dog1 = <span class="kw">new</span> <span class="ty">Dog</span>();
+        dog1.name  = <span class="str">"Rex"</span>;
+        dog1.breed = <span class="str">"German Shepherd"</span>;
+        dog1.age   = <span class="nm">3</span>;
+
+        <span class="ty">Dog</span> dog2 = <span class="kw">new</span> <span class="ty">Dog</span>();
+        dog2.name  = <span class="str">"Buddy"</span>;
+        dog2.breed = <span class="str">"Labrador"</span>;
+        dog2.age   = <span class="nm">5</span>;
+
+        dog1.<span class="fn">bark</span>();
+        dog2.<span class="fn">bark</span>();
+        dog1.<span class="fn">introduce</span>();
+    }
+}</pre>
+  </div>
+
+  <div class="console-block">
+    <div class="console-top">Output</div>
+    <div class="console-body">Rex says: Woof!
+Buddy says: Woof!
+Hi, I'm Rex, a German Shepherd.</div>
+  </div>
+
+  <div class="callout yellow">
+    <div class="callout-icon">!</div>
+    <p>In the login app, <code>Login</code> is a class. When Main.java does <code>Login login = new Login();</code>, it builds one Login object. That one object holds the saved username, password, and name. We pass it between frames so they all share the exact same data — changing the name inside RegisterFrame is visible in LoginFrame and WelcomeFrame, because it's the same object.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     SECTION 6 — CONSTRUCTORS
+════════════════════════════════════ -->
+<div class="section fade-in">
+  <div class="section-eye">Section 06</div>
+  <h2>Constructors</h2>
+
+  <p>A constructor is a special method that runs <strong>automatically the moment you create a new object</strong>. You write it inside the class, and Java calls it whenever someone does <code>new ClassName(...)</code>.</p>
+
+  <p>It looks like a method but it has <strong>no return type</strong>, and its name must <strong>exactly match the class name</strong>. Its job is usually to set up the object's initial data.</p>
+
+  <div class="code-block">
+    <div class="code-top">
+      <div class="code-filename">Student.java</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre><span class="kw">public class</span> <span class="ty">Student</span> {
+
+    <span class="ty">String</span> name;
+    <span class="kw">int</span> studentNumber;
+    <span class="ty">String</span> course;
+
+    <span class="cm">// This IS the constructor.
+    // It has the same name as the class, no return type.
+    // It runs the moment you write: new Student("Kyle", 12345, "IT")</span>
+    <span class="kw">public</span> <span class="fn">Student</span>(<span class="ty">String</span> name, <span class="kw">int</span> studentNumber, <span class="ty">String</span> course) {
+        <span class="cm">// "this.name" = the variable stored in this object
+        // "name"      = the value that was passed in as a parameter</span>
+        <span class="kw">this</span>.name          = name;
+        <span class="kw">this</span>.studentNumber = studentNumber;
+        <span class="kw">this</span>.course        = course;
+    }
+
+    <span class="kw">public void</span> <span class="fn">printInfo</span>() {
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Name:   "</span> + name);
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Number: "</span> + studentNumber);
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Course: "</span> + course);
+    }
+
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="ty">String</span>[] args) {
+
+        <span class="cm">// The constructor runs right here — the three values
+        // go straight into name, studentNumber, and course.</span>
+        <span class="ty">Student</span> s1 = <span class="kw">new</span> <span class="ty">Student</span>(<span class="str">"Kyle Smith"</span>, <span class="nm">12345</span>, <span class="str">"IT"</span>);
+        <span class="ty">Student</span> s2 = <span class="kw">new</span> <span class="ty">Student</span>(<span class="str">"Amahle Dube"</span>, <span class="nm">67890</span>, <span class="str">"Computer Science"</span>);
+
+        s1.<span class="fn">printInfo</span>();
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"---"</span>);
+        s2.<span class="fn">printInfo</span>();
+    }
+}</pre>
+  </div>
+
+  <div class="console-block">
+    <div class="console-top">Output</div>
+    <div class="console-body">Name:   Kyle Smith
+Number: 12345
+Course: IT
+---
+Name:   Amahle Dube
+Number: 67890
+Course: Computer Science</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon">!</div>
+    <p>In the login app, every frame class has a constructor that takes a <code>Login</code> object as a parameter — <code>public RegisterFrame(Login login)</code>. That's why in Main.java we do <code>new RegisterFrame(login)</code>. We're calling the constructor and passing our Login object in.</p>
+  </div>
+
+  <!-- ACTIVITY 3 -->
+  <div class="activity-wrap">
+    <div class="activity-badge">✦ Activity 3</div>
+    <h3>Build a class from scratch</h3>
+    <p>Write a class called <code>Car</code>. It should have three variables: <code>make</code> (String), <code>model</code> (String), and <code>year</code> (int). Write a constructor that takes all three and sets them. Then write a method called <code>describe()</code> that prints something like <em>"2022 Toyota Corolla"</em>.</p>
+
+    <div class="scenario">
+      <p>Your class should work so that this code in main runs correctly:</p>
+      <pre style="background:transparent;padding:0;font-size:13px;color:#c8b8d8;line-height:1.7;font-family:'JetBrains Mono',monospace;"><span class="ty">Car</span> myCar = <span class="kw">new</span> <span class="ty">Car</span>(<span class="str">"Toyota"</span>, <span class="str">"Corolla"</span>, <span class="nm">2022</span>);
+myCar.<span class="fn">describe</span>();
+<span class="cm">// Should print: 2022 Toyota Corolla</span></pre>
+      <p>Try writing it yourself first, then check the answer.</p>
+    </div>
+
+    <div class="reveal-wrap">
+      <button class="reveal-btn" onclick="openModal('modal3')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Reveal Answer
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     SECTION 7 — PRIVATE vs PUBLIC
+════════════════════════════════════ -->
+<div class="section fade-in">
+  <div class="section-eye">Section 07</div>
+  <h2>Private vs Public — Controlling Access</h2>
+
+  <p>When you put a variable or method inside a class, you can control who's allowed to see it or use it. This is called <strong>access control</strong>, and it's one of the most important ideas in OOP.</p>
+
+  <div class="breakdown">
+    <div class="breakdown-row">
+      <div class="breakdown-code">public</div>
+      <div class="breakdown-desc">Anyone, anywhere can read or change this. No restrictions.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">private</div>
+      <div class="breakdown-desc">Only code inside this same class can touch it. Completely hidden from outside.</div>
+    </div>
+  </div>
+
+  <p>So why would you want something to be private? <strong>Protection.</strong> If your <code>Login</code> class stores a password, you don't want other classes randomly changing it. Private keeps it locked away — you can only change it through the methods you've approved.</p>
+
+  <h3>Getters — the approved door</h3>
+  <p>A getter is a small public method whose only job is to return the value of a private variable. It's the "approved door" through which the outside world can <em>read</em> a private value without being able to change it directly.</p>
+
+  <div class="code-block">
+    <div class="code-top">
+      <div class="code-filename">BankAccount.java</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre><span class="kw">public class</span> <span class="ty">BankAccount</span> {
+
+    <span class="cm">// private — nobody outside this class can change these directly.
+    // Try doing account.balance = 1000000 from another class — it won't compile.</span>
+    <span class="kw">private</span> <span class="ty">String</span> owner;
+    <span class="kw">private double</span> balance;
+
+    <span class="kw">public</span> <span class="fn">BankAccount</span>(<span class="ty">String</span> owner, <span class="kw">double</span> startingBalance) {
+        <span class="kw">this</span>.owner   = owner;
+        <span class="kw">this</span>.balance = startingBalance;
+    }
+
+    <span class="cm">// Getter — the only approved way to read the balance.
+    // Notice it's public so others can call it, but it returns
+    // a copy of the value — they can't write to it.</span>
+    <span class="kw">public double</span> <span class="fn">getBalance</span>() {
+        <span class="kw">return</span> balance;
+    }
+
+    <span class="kw">public</span> <span class="ty">String</span> <span class="fn">getOwner</span>() {
+        <span class="kw">return</span> owner;
+    }
+
+    <span class="cm">// The ONLY approved way to add money — with a safety check.</span>
+    <span class="kw">public void</span> <span class="fn">deposit</span>(<span class="kw">double</span> amount) {
+        <span class="kw">if</span> (amount > <span class="nm">0</span>) {
+            balance += amount;
+            <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Deposited R"</span> + amount);
+        } <span class="kw">else</span> {
+            <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Invalid deposit amount."</span>);
+        }
+    }
+
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="ty">String</span>[] args) {
+        <span class="ty">BankAccount</span> acc = <span class="kw">new</span> <span class="ty">BankAccount</span>(<span class="str">"Kyle"</span>, <span class="nm">500.00</span>);
+
+        <span class="cm">// acc.balance = 9999;  ← this would cause a compile error. Good.</span>
+
+        acc.<span class="fn">deposit</span>(<span class="nm">250.00</span>);
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Balance: R"</span> + acc.<span class="fn">getBalance</span>());
+    }
+}</pre>
+  </div>
+
+  <div class="console-block">
+    <div class="console-top">Output</div>
+    <div class="console-body">Deposited R250.0
+Balance: R750.0</div>
+  </div>
+
+  <div class="callout green">
+    <div class="callout-icon">!</div>
+    <p>In the login app, we use <code>getFirstName()</code> and <code>getLastName()</code> in Login.java for exactly this reason. The names are stored as private variables. The WelcomeFrame can read them via the getter, but it can't accidentally overwrite them.</p>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     SECTION 8 — STRING MANIPULATION
+════════════════════════════════════ -->
+<div class="section fade-in">
+  <div class="section-eye">Section 08</div>
+  <h2>String Manipulation</h2>
+
+  <p>A String is just text. But Java gives you a bunch of built-in tools to work with that text — counting characters, checking what's inside it, comparing it to another String, and more. These are called <strong>String methods</strong>.</p>
+
+  <p>You use them with dot notation: <code>myString.methodName()</code>.</p>
+
+  <div class="breakdown">
+    <div class="breakdown-row">
+      <div class="breakdown-code">.length()</div>
+      <div class="breakdown-desc">Returns how many characters are in the String.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">.contains("x")</div>
+      <div class="breakdown-desc">Returns true if the String includes the given text somewhere inside it.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">.equals("x")</div>
+      <div class="breakdown-desc">Returns true if the String's text is exactly the same as "x". Use this instead of ==.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">.toCharArray()</div>
+      <div class="breakdown-desc">Splits the String into an array of individual characters so you can loop through them.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">.matches("pattern")</div>
+      <div class="breakdown-desc">Tests whether the String matches a regex pattern. Returns true or false.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">.startsWith("x")</div>
+      <div class="breakdown-desc">Returns true if the String begins with the given text.</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="breakdown-code">.toUpperCase()</div>
+      <div class="breakdown-desc">Returns a copy of the String with all letters converted to capitals.</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-top">
+      <div class="code-filename">Strings.java</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre><span class="kw">public class</span> <span class="ty">Strings</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="ty">String</span>[] args) {
+
+        <span class="ty">String</span> username = <span class="str">"kyl_1"</span>;
+        <span class="ty">String</span> password = <span class="str">"MyPass@99"</span>;
+        <span class="ty">String</span> cell     = <span class="str">"+27838968976"</span>;
+
+        <span class="cm">// .length() — how many characters?</span>
+        <span class="ty">System</span>.out.<span class="fn">println</span>(username.<span class="fn">length</span>());     <span class="cm">// 5</span>
+
+        <span class="cm">// .contains() — does it include this text?</span>
+        <span class="ty">System</span>.out.<span class="fn">println</span>(username.<span class="fn">contains</span>(<span class="str">"_"</span>)); <span class="cm">// true</span>
+        <span class="ty">System</span>.out.<span class="fn">println</span>(username.<span class="fn">contains</span>(<span class="str">"@"</span>)); <span class="cm">// false</span>
+
+        <span class="cm">// .equals() — same text?  ALWAYS use this, never ==</span>
+        <span class="ty">String</span> entered = <span class="str">"kyl_1"</span>;
+        <span class="ty">System</span>.out.<span class="fn">println</span>(username.<span class="fn">equals</span>(entered)); <span class="cm">// true</span>
+
+        <span class="cm">// .startsWith() — does it start with +27?</span>
+        <span class="ty">System</span>.out.<span class="fn">println</span>(cell.<span class="fn">startsWith</span>(<span class="str">"+27"</span>));    <span class="cm">// true</span>
+
+        <span class="cm">// .toUpperCase() — turn it all caps</span>
+        <span class="ty">System</span>.out.<span class="fn">println</span>(username.<span class="fn">toUpperCase</span>());    <span class="cm">// KYL_1</span>
+
+        <span class="cm">// .matches() with a simple regex pattern
+        // \\+27[0-9]{9} means: starts with +27, then exactly 9 digits</span>
+        <span class="ty">System</span>.out.<span class="fn">println</span>(cell.<span class="fn">matches</span>(<span class="str">"\\+27[0-9]{9}"</span>)); <span class="cm">// true</span>
+
+        <span class="cm">// .toCharArray() + looping through each character
+        // This is how we check the password for capital letters etc.</span>
+        <span class="kw">for</span> (<span class="kw">char</span> c : password.<span class="fn">toCharArray</span>()) {
+            <span class="kw">if</span> (<span class="ty">Character</span>.<span class="fn">isUpperCase</span>(c)) {
+                <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Found a capital: "</span> + c);
+            }
+        }
+    }
+}</pre>
+  </div>
+
+  <div class="console-block">
+    <div class="console-top">Output</div>
+    <div class="console-body">5
+true
+false
+true
+true
+KYL_1
+true
+Found a capital: M
+Found a capital: P</div>
+  </div>
+
+  <div class="callout blue">
+    <div class="callout-icon">!</div>
+    <p><strong>Why not ==?</strong> When you write <code>username == entered</code>, Java doesn't compare the text — it checks whether the two variables point to the exact same chunk of memory. That can give you <code>false</code> even when the words are identical. <code>.equals()</code> always compares the actual text. This mistake has caught out basically every Java beginner at least once.</p>
+  </div>
+
+  <!-- ACTIVITY 4 -->
+  <div class="activity-wrap">
+    <div class="activity-badge">✦ Activity 4</div>
+    <h3>String detective</h3>
+    <p>Without running it, trace through this code and write down what each line prints.</p>
+
+    <div class="scenario">
+      <pre style="background:transparent;padding:0;font-size:13px;color:#c8b8d8;line-height:1.7;font-family:'JetBrains Mono',monospace;"><span class="ty">String</span> word = <span class="str">"Hello_World"</span>;
+
+<span class="ty">System</span>.out.<span class="fn">println</span>(word.<span class="fn">length</span>());
+<span class="ty">System</span>.out.<span class="fn">println</span>(word.<span class="fn">contains</span>(<span class="str">"_"</span>));
+<span class="ty">System</span>.out.<span class="fn">println</span>(word.<span class="fn">contains</span>(<span class="str">"java"</span>));
+<span class="ty">System</span>.out.<span class="fn">println</span>(word.<span class="fn">startsWith</span>(<span class="str">"Hello"</span>));
+<span class="ty">System</span>.out.<span class="fn">println</span>(word.<span class="fn">toUpperCase</span>());
+<span class="ty">System</span>.out.<span class="fn">println</span>(word.<span class="fn">equals</span>(<span class="str">"Hello_World"</span>));
+<span class="ty">System</span>.out.<span class="fn">println</span>(word.<span class="fn">equals</span>(<span class="str">"hello_world"</span>));</pre>
+      <p>What does each line print? Work through it one by one, then check.</p>
+    </div>
+
+    <div class="reveal-wrap">
+      <button class="reveal-btn" onclick="openModal('modal4')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Reveal Answer
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     SECTION 9 — FOR LOOPS
+════════════════════════════════════ -->
+<div class="section fade-in">
+  <div class="section-eye">Section 09</div>
+  <h2>For Loops</h2>
+
+  <p>A loop runs a block of code <strong>repeatedly</strong> — either a set number of times, or once for each item in a collection. Instead of writing the same line 10 times, you write it once inside a loop and let it run.</p>
+
+  <h3>The standard for loop</h3>
+  <p>Three parts inside the brackets, separated by semicolons: <strong>start → condition → step</strong>. It keeps running as long as the condition is true.</p>
+
+  <div class="code-block">
+    <div class="code-top">
+      <div class="code-filename">Loops.java</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+<pre><span class="kw">public class</span> <span class="ty">Loops</span> {
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="ty">String</span>[] args) {
+
+        <span class="cm">// Standard for loop — runs 5 times (i goes 0, 1, 2, 3, 4)
+        //   int i = 0   → start with i at 0
+        //   i < 5       → keep going while i is less than 5
+        //   i++         → after each loop, add 1 to i</span>
+        <span class="kw">for</span> (<span class="kw">int</span> i = <span class="nm">0</span>; i < <span class="nm">5</span>; i++) {
+            <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Loop number: "</span> + i);
+        }
+
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"---"</span>);
+
+        <span class="cm">// For-each loop — go through every character in a String.
+        // "for each char c in the character array of password..."
+        // This is exactly what the password complexity check uses.</span>
+        <span class="ty">String</span> password = <span class="str">"MyPass@99"</span>;
+        <span class="kw">boolean</span> hasUpper   = <span class="kw">false</span>;
+        <span class="kw">boolean</span> hasDigit   = <span class="kw">false</span>;
+        <span class="kw">boolean</span> hasSpecial = <span class="kw">false</span>;
+
+        <span class="kw">for</span> (<span class="kw">char</span> c : password.<span class="fn">toCharArray</span>()) {
+            <span class="kw">if</span> (<span class="ty">Character</span>.<span class="fn">isUpperCase</span>(c))       hasUpper   = <span class="kw">true</span>;
+            <span class="kw">if</span> (<span class="ty">Character</span>.<span class="fn">isDigit</span>(c))           hasDigit   = <span class="kw">true</span>;
+            <span class="kw">if</span> (!<span class="ty">Character</span>.<span class="fn">isLetterOrDigit</span>(c)) hasSpecial = <span class="kw">true</span>;
+        }
+
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Has capital:  "</span> + hasUpper);
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Has digit:    "</span> + hasDigit);
+        <span class="ty">System</span>.out.<span class="fn">println</span>(<span class="str">"Has special:  "</span> + hasSpecial);
+    }
+}</pre>
+  </div>
+
+  <div class="console-block">
+    <div class="console-top">Output</div>
+    <div class="console-body">Loop number: 0
+Loop number: 1
+Loop number: 2
+Loop number: 3
+Loop number: 4
+---
+Has capital:  true
+Has digit:    true
+Has special:  true</div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon">!</div>
+    <p>The for-each loop <code>for (char c : password.toCharArray())</code> reads as: "for each character <code>c</code> in the array of characters from <code>password</code>." Each time through the loop, <code>c</code> is the next character. So for "MyPass@99", c goes: M → y → P → a → s → s → @ → 9 → 9.</p>
+  </div>
+
+  <!-- ACTIVITY 5 -->
+  <div class="activity-wrap">
+    <div class="activity-badge">✦ Activity 5</div>
+    <h3>Count the digits</h3>
+    <p>Write a method called <code>countDigits</code> that takes a String and returns how many digit characters (0–9) are inside it. Use a for-each loop and <code>Character.isDigit()</code>.</p>
+
+    <div class="scenario">
+      <p>It should work so that:</p>
+      <pre style="background:transparent;padding:0;font-size:13px;color:#c8b8d8;line-height:1.7;font-family:'JetBrains Mono',monospace;"><span class="ty">System</span>.out.<span class="fn">println</span>(<span class="fn">countDigits</span>(<span class="str">"abc123"</span>));    <span class="cm">// 3</span>
+<span class="ty">System</span>.out.<span class="fn">println</span>(<span class="fn">countDigits</span>(<span class="str">"hello"</span>));     <span class="cm">// 0</span>
+<span class="ty">System</span>.out.<span class="fn">println</span>(<span class="fn">countDigits</span>(<span class="str">"p@ssW0rd99"</span>));<span class="cm">// 3</span></pre>
+      <p>Write the method yourself first. Use a counter variable that starts at 0 and goes up by 1 each time you find a digit. Then check your answer.</p>
+    </div>
+
+    <div class="reveal-wrap">
+      <button class="reveal-btn" onclick="openModal('modal5')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Reveal Answer
+      </button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<!-- ══════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════ -->
+
+<!-- MODAL 1 — if/else activity -->
+<div class="modal" id="modal1" onclick="overlayClick(event,'modal1')">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title" id="modal1-title">Activity 1 — Enter Password</div>
+      <button class="modal-close" onclick="closeModal('modal1')">×</button>
+    </div>
+    <div id="modal1-pw" class="pw-screen">
+      <div class="pw-lock">🔒</div>
+      <div class="pw-title">Answer Locked</div>
+      <p class="pw-hint">Enter the class password to reveal.<br/>Hint: it's <span class="pink">three of the same digit</span>.</p>
+      <input class="pw-input" id="pw1" type="password" maxlength="10" placeholder="●  ●  ●"
+             onkeydown="if(event.key==='Enter')checkPw('modal1')" autocomplete="off"/>
+      <div class="pw-error" id="err1"></div>
+      <button class="pw-submit" onclick="checkPw('modal1')">Unlock</button>
+    </div>
+    <div class="answer-screen" id="modal1-answer">
+      <div class="modal-body">
+        <div class="answer-label">Answer — Activity 1</div>
+        <p style="color:#b0a0c0;margin-bottom:18px;">The temperature is 22. Let's trace through:</p>
+        <div class="console-block">
+          <div class="console-top">Output</div>
+          <div class="console-body">Nice weather.</div>
+        </div>
+        <p style="color:#b0a0c0;"><strong style="color:#e8d8f8;">Why?</strong> Java checks conditions from top to bottom and stops at the first one that's true.</p>
+        <ul class="checklist" style="margin-top:12px;">
+          <li><code>temperature > 30</code> → Is 22 > 30? No. Skip.</li>
+          <li><code>temperature > 20</code> → Is 22 > 20? Yes! Run this block, then stop.</li>
+          <li>The <code>else</code> never runs because we already found a match.</li>
+        </ul>
+        <div class="callout green" style="margin-top:20px;">
+          <div class="callout-icon">!</div>
+          <p>This is a key thing to understand — Java checks from the top, and once one condition matches, it skips everything else. Order matters.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 2 — methods activity -->
+<div class="modal" id="modal2" onclick="overlayClick(event,'modal2')">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title" id="modal2-title">Activity 2 — Enter Password</div>
+      <button class="modal-close" onclick="closeModal('modal2')">×</button>
+    </div>
+    <div id="modal2-pw" class="pw-screen">
+      <div class="pw-lock">🔒</div>
+      <div class="pw-title">Answer Locked</div>
+      <p class="pw-hint">Enter the class password to reveal.<br/>Hint: it's <span class="pink">three of the same digit</span>.</p>
+      <input class="pw-input" id="pw2" type="password" maxlength="10" placeholder="●  ●  ●"
+             onkeydown="if(event.key==='Enter')checkPw('modal2')" autocomplete="off"/>
+      <div class="pw-error" id="err2"></div>
+      <button class="pw-submit" onclick="checkPw('modal2')">Unlock</button>
+    </div>
+    <div class="answer-screen" id="modal2-answer">
+      <div class="modal-body">
+        <div class="answer-label">Answer — Activity 2</div>
+        <p style="color:#b0a0c0;margin-bottom:18px;"><strong style="color:#e8d8f8;">The bug:</strong> The return values are swapped. When age is 18 or older (<code>age >= 18</code> is true), it returns <code>false</code>. That's backwards.</p>
+        <p style="color:#b0a0c0;margin-bottom:18px;">Here's the corrected version:</p>
+        <div class="code-block" style="margin-top:0">
+          <div class="code-top">
+            <div class="code-filename">Fixed</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+<pre><span class="kw">public static boolean</span> <span class="fn">canVote</span>(<span class="kw">int</span> age) {
+    <span class="kw">if</span> (age >= <span class="nm">18</span>) {
+        <span class="kw">return true</span>;   <span class="cm">// ← was false, should be true</span>
+    } <span class="kw">else</span> {
+        <span class="kw">return false</span>;  <span class="cm">// ← was true, should be false</span>
+    }
+}
+
+<span class="cm">// Or even shorter — just return the condition directly:</span>
+<span class="kw">public static boolean</span> <span class="fn">canVote</span>(<span class="kw">int</span> age) {
+    <span class="kw">return</span> age >= <span class="nm">18</span>;
+}</pre>
+        </div>
+        <div class="callout green" style="margin-top:0">
+          <div class="callout-icon">!</div>
+          <p>The short version — <code>return age >= 18;</code> — works because <code>age >= 18</code> is already a boolean expression. It evaluates to <code>true</code> or <code>false</code> by itself, so you can return it directly. This is the pattern used in most of the Login methods.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 3 — classes activity -->
+<div class="modal" id="modal3" onclick="overlayClick(event,'modal3')">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title" id="modal3-title">Activity 3 — Enter Password</div>
+      <button class="modal-close" onclick="closeModal('modal3')">×</button>
+    </div>
+    <div id="modal3-pw" class="pw-screen">
+      <div class="pw-lock">🔒</div>
+      <div class="pw-title">Answer Locked</div>
+      <p class="pw-hint">Enter the class password to reveal.<br/>Hint: it's <span class="pink">three of the same digit</span>.</p>
+      <input class="pw-input" id="pw3" type="password" maxlength="10" placeholder="●  ●  ●"
+             onkeydown="if(event.key==='Enter')checkPw('modal3')" autocomplete="off"/>
+      <div class="pw-error" id="err3"></div>
+      <button class="pw-submit" onclick="checkPw('modal3')">Unlock</button>
+    </div>
+    <div class="answer-screen" id="modal3-answer">
+      <div class="modal-body">
+        <div class="answer-label">Answer — Activity 3</div>
+        <div class="code-block" style="margin-top:0">
+          <div class="code-top">
+            <div class="code-filename">Car.java</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+<pre><span class="kw">public class</span> <span class="ty">Car</span> {
+
+    <span class="cm">// Three variables — every Car object will have these</span>
+    <span class="ty">String</span> make;
+    <span class="ty">String</span> model;
+    <span class="kw">int</span> year;
+
+    <span class="cm">// Constructor — runs when someone does new Car(...)</span>
+    <span class="kw">public</span> <span class="fn">Car</span>(<span class="ty">String</span> make, <span class="ty">String</span> model, <span class="kw">int</span> year) {
+        <span class="kw">this</span>.make  = make;
+        <span class="kw">this</span>.model = model;
+        <span class="kw">this</span>.year  = year;
+    }
+
+    <span class="cm">// Method that prints a description</span>
+    <span class="kw">public void</span> <span class="fn">describe</span>() {
+        <span class="ty">System</span>.out.<span class="fn">println</span>(year + <span class="str">" "</span> + make + <span class="str">" "</span> + model);
+    }
+
+    <span class="kw">public static void</span> <span class="fn">main</span>(<span class="ty">String</span>[] args) {
+        <span class="ty">Car</span> myCar = <span class="kw">new</span> <span class="ty">Car</span>(<span class="str">"Toyota"</span>, <span class="str">"Corolla"</span>, <span class="nm">2022</span>);
+        myCar.<span class="fn">describe</span>(); <span class="cm">// 2022 Toyota Corolla</span>
+    }
+}</pre>
+        </div>
+        <div class="callout" style="margin-top:0">
+          <div class="callout-icon">!</div>
+          <p>Notice <code>this.make = make;</code> — the left side (<code>this.make</code>) is the variable stored inside the object. The right side (<code>make</code>) is the parameter that was passed in. The <code>this.</code> tells Java "I mean the one that belongs to this object, not the parameter."</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 4 — string detective -->
+<div class="modal" id="modal4" onclick="overlayClick(event,'modal4')">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title" id="modal4-title">Activity 4 — Enter Password</div>
+      <button class="modal-close" onclick="closeModal('modal4')">×</button>
+    </div>
+    <div id="modal4-pw" class="pw-screen">
+      <div class="pw-lock">🔒</div>
+      <div class="pw-title">Answer Locked</div>
+      <p class="pw-hint">Enter the class password to reveal.<br/>Hint: it's <span class="pink">three of the same digit</span>.</p>
+      <input class="pw-input" id="pw4" type="password" maxlength="10" placeholder="●  ●  ●"
+             onkeydown="if(event.key==='Enter')checkPw('modal4')" autocomplete="off"/>
+      <div class="pw-error" id="err4"></div>
+      <button class="pw-submit" onclick="checkPw('modal4')">Unlock</button>
+    </div>
+    <div class="answer-screen" id="modal4-answer">
+      <div class="modal-body">
+        <div class="answer-label">Answer — Activity 4</div>
+        <div class="console-block" style="margin-top:0">
+          <div class="console-top">Output — line by line</div>
+          <div class="console-body">11           ← "Hello_World" has 11 characters
+true         ← it does contain "_"
+false        ← it does NOT contain "java" (case-sensitive!)
+true         ← it does start with "Hello"
+HELLO_WORLD  ← all letters uppercased
+true         ← "Hello_World".equals("Hello_World") — exact match
+false        ← "Hello_World".equals("hello_world") — different case, not equal</div>
+        </div>
+        <div class="callout yellow" style="margin-top:16px;">
+          <div class="callout-icon">!</div>
+          <p>The last two lines are the important lesson. <code>.equals()</code> is <strong>case-sensitive</strong>. "Hello_World" and "hello_world" are different Strings. If you want a case-insensitive comparison, use <code>.equalsIgnoreCase()</code> instead.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 5 — loops activity -->
+<div class="modal" id="modal5" onclick="overlayClick(event,'modal5')">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title" id="modal5-title">Activity 5 — Enter Password</div>
+      <button class="modal-close" onclick="closeModal('modal5')">×</button>
+    </div>
+    <div id="modal5-pw" class="pw-screen">
+      <div class="pw-lock">🔒</div>
+      <div class="pw-title">Answer Locked</div>
+      <p class="pw-hint">Enter the class password to reveal.<br/>Hint: it's <span class="pink">three of the same digit</span>.</p>
+      <input class="pw-input" id="pw5" type="password" maxlength="10" placeholder="●  ●  ●"
+             onkeydown="if(event.key==='Enter')checkPw('modal5')" autocomplete="off"/>
+      <div class="pw-error" id="err5"></div>
+      <button class="pw-submit" onclick="checkPw('modal5')">Unlock</button>
+    </div>
+    <div class="answer-screen" id="modal5-answer">
+      <div class="modal-body">
+        <div class="answer-label">Answer — Activity 5</div>
+        <div class="code-block" style="margin-top:0">
+          <div class="code-top">
+            <div class="code-filename">countDigits method</div>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+<pre><span class="kw">public static int</span> <span class="fn">countDigits</span>(<span class="ty">String</span> text) {
+
+    <span class="kw">int</span> count = <span class="nm">0</span>; <span class="cm">// start at zero</span>
+
+    <span class="kw">for</span> (<span class="kw">char</span> c : text.<span class="fn">toCharArray</span>()) {
+        <span class="kw">if</span> (<span class="ty">Character</span>.<span class="fn">isDigit</span>(c)) {
+            count++; <span class="cm">// count++ means add 1 to count</span>
+        }
+    }
+
+    <span class="kw">return</span> count;
+}
+
+<span class="cm">// Test it:</span>
+<span class="ty">System</span>.out.<span class="fn">println</span>(<span class="fn">countDigits</span>(<span class="str">"abc123"</span>));     <span class="cm">// 3</span>
+<span class="ty">System</span>.out.<span class="fn">println</span>(<span class="fn">countDigits</span>(<span class="str">"hello"</span>));      <span class="cm">// 0</span>
+<span class="ty">System</span>.out.<span class="fn">println</span>(<span class="fn">countDigits</span>(<span class="str">"p@ssW0rd99"</span>)); <span class="cm">// 3</span></pre>
+        </div>
+        <div class="callout green" style="margin-top:0">
+          <div class="callout-icon">!</div>
+          <p><code>count++</code> is shorthand for <code>count = count + 1</code>. Start at 0, loop through every character, add 1 each time you find a digit, then return the total. This exact same counter pattern is used in more complex form inside <code>checkPasswordComplexity()</code>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>JAVA · POE · FUNDAMENTALS — VARIABLES · METHODS · CLASSES · STRINGS · LOOPS</footer>
+
+<div class="prev-btn-wrap">
+  <a class="prev-btn" href="index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+    Back
+  </a>
+</div>
+
+<script>
+  /* ── Progress bar ── */
+  window.addEventListener('scroll', () => {
+    const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight);
+    document.getElementById('progressBar').style.transform = `scaleX(${pct})`;
+  });
+
+  /* ── Scroll fade ── */
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.07 });
+  document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+
+  /* ── Copy code ── */
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'Copied!'; btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  /* ── Modal helpers ── */
+  const PASS = '888';
+  const attempts = {};
+
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+    attempts[id] = attempts[id] || 0;
+    setTimeout(() => {
+      const pw = document.getElementById('pw' + id.replace('modal', ''));
+      if (pw) pw.focus();
+    }, 200);
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function overlayClick(e, id) {
+    if (e.target === document.getElementById(id)) closeModal(id);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal.open').forEach(m => {
+        m.classList.remove('open');
+        document.body.style.overflow = '';
+      });
+    }
+  });
+
+  function checkPw(id) {
+    const num = id.replace('modal', '');
+    const input = document.getElementById('pw' + num);
+    const errEl = document.getElementById('err' + num);
+    attempts[id] = (attempts[id] || 0) + 1;
+
+    if (input.value.trim() === PASS) {
+      document.getElementById(id + '-pw').style.display = 'none';
+      document.getElementById(id + '-answer').style.display = 'block';
+      document.getElementById(id + '-title').textContent = 'Answer Revealed';
+      return;
+    }
+
+    input.value = '';
+    input.classList.add('shake');
+    setTimeout(() => input.classList.remove('shake'), 400);
+
+    const msgs = [
+      'Incorrect — try again.',
+      'Nope. Think: three of the same digit.',
+      'Still wrong. What number times three equals itself repeated...?',
+      'Come on now. 8 + 8 + 8. You got this.'
+    ];
+    errEl.textContent = msgs[Math.min(attempts[id] - 1, msgs.length - 1)];
+    setTimeout(() => input.focus(), 410);
+  }
+</script>
+</body>
+</html>
